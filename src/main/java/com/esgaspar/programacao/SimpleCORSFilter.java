@@ -31,6 +31,7 @@ public class SimpleCORSFilter implements Filter {
         String header = request.getHeader("Authorization");
 
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+        response.setHeader("Access-Control-Allow-Origin", "http://89.117.32.90:8080");
         response.setHeader("Access-Control-Allow-Methods", "*");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "*");
