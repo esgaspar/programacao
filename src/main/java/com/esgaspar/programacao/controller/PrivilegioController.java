@@ -9,7 +9,7 @@ import java.util.List;
 
 @CrossOrigin(origins = { "*" })
 @RestController
-@RequestMapping("privilegio")
+@RequestMapping("/privilegio")
 public class PrivilegioController {
 
     @Autowired
