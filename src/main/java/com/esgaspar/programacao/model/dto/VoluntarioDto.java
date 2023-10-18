@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 
@@ -14,11 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonClassDescription
+@Data
 public class VoluntarioDto {
     Long id;
     String nome;
-    List<PrivilegioDto> privilegioList;
-
+    @Lazy List<PrivilegioDto> privilegioList;
 
     @JsonIgnore
     public Voluntario getEntity() {

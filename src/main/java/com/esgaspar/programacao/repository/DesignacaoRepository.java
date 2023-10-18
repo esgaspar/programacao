@@ -12,8 +12,10 @@ import java.util.Date;
 import java.util.List;
 
 public interface DesignacaoRepository extends JpaRepository<Designacao, Long> {
-    List<Designacao> findByDataBetweenOrderByData(LocalDate inicio, LocalDate fim);
 
-    @Query("select d from Designacao d where month(d.data) = :mes Order By data")
+    @Query(value = "from Designacao d where data BETWEEN :inicio AND :fim Order By data, d.privilegio.ordem")
+    List<Designacao> findByData(LocalDate inicio, LocalDate fim);
+
+    @Query("select d from Designacao d where month(d.data) = :mes Order By data, d.privilegio.ordem")
     List<Designacao> findByMes(int mes);
 }

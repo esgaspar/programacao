@@ -5,6 +5,7 @@ import com.esgaspar.programacao.model.dto.VoluntarioDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@Data
 public class Privilegio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,12 +33,9 @@ public class Privilegio {
     @Column(name = "ordem")
     private Integer ordem;
 
-    @ManyToMany
-    @JoinTable(name = "voluntario_has_privilegio", joinColumns =
-            {@JoinColumn(name = "privilegio_id")}, inverseJoinColumns =
-            {@JoinColumn(name = "voluntario_id")})
+    @OrderBy("nome")
+    @ManyToMany(mappedBy = "privilegios", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Voluntario> voluntarioList;
-
 
     @JsonIgnore
     public PrivilegioDto getDtoParcial() {
@@ -64,6 +63,4 @@ public class Privilegio {
 
         return dto;
     }
-
-
 }

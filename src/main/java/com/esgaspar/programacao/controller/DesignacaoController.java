@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = { "*" })
+@CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping("/designacao")
 public class DesignacaoController {
@@ -33,6 +33,11 @@ public class DesignacaoController {
     @PostMapping(value = "save-all", name = "", produces = "application/json")
     public List<DesignacaoDto> saveAll(@RequestBody List<DesignacaoDto> designacaoDtoList) {
         return designacaoService.saveAll(designacaoDtoList);
+    }
+
+    @PostMapping(value = "delete-all", name = "", produces = "application/json")
+    public void deleteAll(@RequestBody List<DesignacaoDto> designacaoDtoList) {
+        designacaoService.deleteAll(designacaoDtoList);
     }
 
     @DeleteMapping(value = "/{id}", name = "", produces = "application/json")

@@ -27,7 +27,16 @@ public class VoluntarioService {
     }
 
     public List<VoluntarioDto> list() {
-        List<Voluntario> voluntarioList = repository.findAll();
+        List<Voluntario> voluntarioList = repository.findAllByOrderByNome();
+        return voluntarioList.stream().map(Voluntario::getDto).toList();
+    }
+
+    public List<VoluntarioDto> listByNome(String nome) {
+        if (nome.equalsIgnoreCase("-")) {
+            nome = "";
+        }
+
+        List<Voluntario> voluntarioList = repository.findByNomeContainingIgnoreCase(nome.toUpperCase());
         return voluntarioList.stream().map(Voluntario::getDto).toList();
     }
 
@@ -37,6 +46,15 @@ public class VoluntarioService {
     }
 
     public void delete(Long id) {
+        Optional<Voluntario> opt = repository.findById(id);
+
+        opt.ifPresent(voluntario -> {
+            voluntario.setPrivilegios(new ArrayList<>());
+            repository.saveAndFlush(voluntario);
+
+        });
+
+
         repository.deleteById(id);
     }
 

@@ -1,10 +1,10 @@
 package com.esgaspar.programacao.model;
 
+import com.esgaspar.programacao.model.dto.UserDto;
+import com.esgaspar.programacao.model.dto.VoluntarioDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,13 +13,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "users")
+@Data
 public class User implements UserDetails {
 
     @Id
@@ -39,21 +42,6 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private Set<Role> roles;
-
-    /*
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<SimpleGrantedAuthority> list = new ArrayList<SimpleGrantedAuthority>();
-
-        if (getRoles() != null && getRoles().size() > 0) {
-
-            for (Role role : getRoles()) {
-                list.set(new SimpleGrantedAuthority(role.getName()));
-            }
-        }
-        return list;
-    }
-    */
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -89,5 +77,20 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @JsonIgnore
+    public UserDto getDto() {
+        UserDto dto = UserDto.builder()
+                .id(getId())
+                .name(getName())
+                .username(getUsername())
+                .email(getEmail())
+                .build();
+
+        if (getRoles() != null)
+            dto.setRoles(getRoles().stream().map(Role::getDto).collect(Collectors.toSet()));
+
+        return dto;
     }
 }

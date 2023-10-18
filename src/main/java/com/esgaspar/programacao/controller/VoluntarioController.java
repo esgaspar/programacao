@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = { "*" })
+@CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping("/voluntario")
 public class VoluntarioController {
@@ -24,6 +24,13 @@ public class VoluntarioController {
     public List<VoluntarioDto> getVoluntarioList() {
         return voluntarioService.list();
     }
+
+    @GetMapping(value = "list/nome/{nome}", name = "", produces = "application/json")
+    public List<VoluntarioDto> getVoluntarioList(@PathVariable String nome) {
+        List<VoluntarioDto> result = voluntarioService.listByNome(nome);
+        return result;
+    }
+
 
     @PostMapping(value = "", name = "", produces = "application/json")
     public VoluntarioDto save(@RequestBody VoluntarioDto voluntarioDto) {

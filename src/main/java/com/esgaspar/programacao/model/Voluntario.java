@@ -16,8 +16,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class Voluntario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +26,11 @@ public class Voluntario {
     @Column(name = "descricao", nullable = false, length = 15)
     private String nome;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinTable(name = "voluntario_has_privilegio", joinColumns =
             {@JoinColumn(name = "voluntario_id")}, inverseJoinColumns =
             {@JoinColumn(name = "privilegio_id")})
+    @OrderBy("ordem")
     private List<Privilegio> privilegios;
 
     @JsonIgnore

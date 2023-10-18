@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -36,4 +37,12 @@ public class PrivilegioService {
         repository.deleteById(id);
     }
 
+    public List<PrivilegioDto> saveAll(List<PrivilegioDto> privilegioDtoList) {
+        return repository
+                .saveAll(
+                        privilegioDtoList.stream()
+                                .map(PrivilegioDto::getEntity).toList())
+                .stream()
+                .map(Privilegio::getDto).toList();
+    }
 }

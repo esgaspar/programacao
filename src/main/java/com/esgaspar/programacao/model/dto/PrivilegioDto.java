@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @JsonClassDescription
+@Data
 public class PrivilegioDto {
     Long id;
     String descricao;

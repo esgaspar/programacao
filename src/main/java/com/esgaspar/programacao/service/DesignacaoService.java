@@ -54,6 +54,13 @@ public class DesignacaoService {
                 .stream().map(Designacao::getDto).toList();
     }
 
+
+    @Transactional
+    public void deleteAll(List<DesignacaoDto> designacaoDtoList) {
+        repository.deleteAll(designacaoDtoList.stream().map(
+                DesignacaoDto::getEntityPrint).toList());
+    }
+
     public void delete(Long id) {
         repository.deleteById(id);
     }
@@ -68,7 +75,7 @@ public class DesignacaoService {
     }
 
     public List<DesignacaoDto> findByDate(LocalDate inicio, LocalDate fim) {
-        return repository.findByDataBetweenOrderByData(inicio, fim).stream().map(Designacao::getDto).toList();
+        return repository.findByData(inicio, fim).stream().map(Designacao::getDto).toList();
     }
 
     public List<DesignacaoDto> findByMes(int mes) {

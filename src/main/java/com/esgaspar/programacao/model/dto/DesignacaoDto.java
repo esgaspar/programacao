@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @JsonClassDescription
+@Data
 public class DesignacaoDto {
     Long id;
     String data;

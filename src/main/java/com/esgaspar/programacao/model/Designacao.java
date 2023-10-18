@@ -18,6 +18,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Getter
 @Setter
+@Data
 public class Designacao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
