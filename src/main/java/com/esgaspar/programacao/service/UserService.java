@@ -1,8 +1,10 @@
 package com.esgaspar.programacao.service;
 
 import com.esgaspar.programacao.infra.security.SecuryUtils;
+import com.esgaspar.programacao.model.Role;
 import com.esgaspar.programacao.model.User;
 import com.esgaspar.programacao.model.dto.UserDto;
+import com.esgaspar.programacao.repository.RoleRepository;
 import com.esgaspar.programacao.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +15,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
 public class UserService {
     @Autowired
     UserRepository repository;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     @Autowired
     AuthService authService;
@@ -45,9 +47,15 @@ public class UserService {
     @Transactional
     public UserDto save(UserDto dto) {
 
-        if (SecuryUtils.isAdm() || Objects.nonNull(dto.getId())
+        if (!SecuryUtils.isAdm() || Objects.nonNull(dto.getId())
                 && SecuryUtils.getUser().getId().compareTo(dto.getId()) == 0) {
+
             dto.setPassword(new BCryptPasswordEncoder().encode(dto.getPassword()));
+            if (dto.getRoles().isEmpty()) {
+                roleRepository.findByName("user")
+                        .ifPresent(role -> dto.setRoles(Collections.singleton(role.getDto())));
+            }
+
             return repository.save(dto.getEntity()).getDto();
         }
         throw new AccessDeniedException("Operação não permitida");
