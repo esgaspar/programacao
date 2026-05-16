@@ -1,0 +1,60 @@
+name: Logs Prod (tempo real)
+
+on:
+  workflow_dispatch:
+    inputs:
+      alvo:
+        description: "Qual log acompanhar"
+        required: true
+        default: backend
+        type: choice
+        options:
+          - backend
+          - nginx-access
+          - nginx-errors
+          - tudo
+      duracao:
+        description: "Duração em minutos (max 10)"
+        required: true
+        default: "3"
+        type: choice
+        options:
+          - "1"
+          - "3"
+          - "5"
+          - "10"
+
+jobs:
+  logs:
+    name: "tail -f ${{ inputs.alvo }} por ${{ inputs.duracao }}min"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Configurar SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 89.117.32.90 >> ~/.ssh/known_hosts
+
+      - name: "Streaming: ${{ inputs.alvo }}"
+        run: |
+          SEGUNDOS=$(( ${{ inputs.duracao }} * 60 ))
+
+          case "${{ inputs.alvo }}" in
+            backend)
+              CMD="timeout $SEGUNDOS tail -f /home/workspace/programacao/programacao/nohup.out"
+              ;;
+            nginx-access)
+              CMD="timeout $SEGUNDOS tail -f /var/log/nginx/access.log"
+              ;;
+            nginx-errors)
+              CMD="timeout $SEGUNDOS tail -f /var/log/nginx/error.log"
+              ;;
+            tudo)
+              CMD="timeout $SEGUNDOS tail -f /home/workspace/programacao/programacao/nohup.out /var/log/nginx/access.log /var/log/nginx/error.log"
+              ;;
+          esac
+
+          ssh -o StrictHostKeyChecking=no -o ControlPath=none root@89.117.32.90 "$CMD" || true

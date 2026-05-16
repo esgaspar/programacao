@@ -18,7 +18,7 @@ public class Voluntario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "descricao", nullable = false, length = 15)
+    @Column(name = "descricao", nullable = false, length = 50)
     private String nome;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
