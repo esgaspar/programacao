@@ -7,14 +7,26 @@ jobs:
   restore:
     runs-on: ubuntu-latest
     steps:
-      - name: Add new SSH key to server
+      - name: Restore local SSH key on server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          LOCAL_SSH_PUBLIC_KEY: ${{ secrets.LOCAL_SSH_PUBLIC_KEY }}
         with:
           host: 89.117.32.90
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: LOCAL_SSH_PUBLIC_KEY
           script: |
             mkdir -p ~/.ssh
-            echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILlqln1/spg4U0TcJyQApuCpqDbye8dvkook8R3OzqDx hostinger-1778901011" >> ~/.ssh/authorized_keys
+            chmod 700 ~/.ssh
+            if [ -z "$LOCAL_SSH_PUBLIC_KEY" ]; then
+              echo "Erro: secret LOCAL_SSH_PUBLIC_KEY nao configurado"
+              exit 1
+            fi
+            if ! grep -qF "$LOCAL_SSH_PUBLIC_KEY" ~/.ssh/authorized_keys 2>/dev/null; then
+              echo "$LOCAL_SSH_PUBLIC_KEY" >> ~/.ssh/authorized_keys
+              echo "Chave restaurada com sucesso"
+            else
+              echo "Chave ja presente, nada a fazer"
+            fi
             chmod 600 ~/.ssh/authorized_keys
-            echo "SSH key added"
