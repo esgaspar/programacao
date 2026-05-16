@@ -1,48 +1,44 @@
 package com.esgaspar.programacao.service;
 
-import com.esgaspar.programacao.model.Privilegio;
+import com.esgaspar.programacao.exception.ResourceNotFoundException;
+import com.esgaspar.programacao.mapper.PrivilegioMapper;
 import com.esgaspar.programacao.model.dto.PrivilegioDto;
 import com.esgaspar.programacao.repository.PrivilegioRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 
 @Service
+@RequiredArgsConstructor
 public class PrivilegioService {
-    @Autowired
-    PrivilegioRepository repository;
+
+    private final PrivilegioRepository repository;
+    private final PrivilegioMapper mapper;
 
     public PrivilegioDto find(Long id) {
-        Optional<Privilegio> privilegioOpt = repository.findById(id);
-        Privilegio privilegio = privilegioOpt.orElse(Privilegio.builder().build());
-        return privilegio.getDto();
+        return repository.findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Privilégio não encontrado: " + id));
     }
 
     public List<PrivilegioDto> list() {
-        List<Privilegio> privilegioList = repository.findAllByOrderByOrdem();
-        return privilegioList.stream().map(Privilegio::getDto).toList();
+        return repository.findAllByOrderByOrdem().stream().map(mapper::toDto).toList();
     }
 
     @Transactional
-    public PrivilegioDto save(PrivilegioDto privilegioDto) {
-        return repository.save(privilegioDto.getEntity()).getDto();
+    public PrivilegioDto save(PrivilegioDto dto) {
+        return mapper.toDto(repository.save(mapper.toEntity(dto)));
+    }
+
+    @Transactional
+    public List<PrivilegioDto> saveAll(List<PrivilegioDto> dtos) {
+        return repository.saveAll(dtos.stream().map(mapper::toEntity).toList())
+                .stream().map(mapper::toDto).toList();
     }
 
     public void delete(Long id) {
         repository.deleteById(id);
-    }
-
-    public List<PrivilegioDto> saveAll(List<PrivilegioDto> privilegioDtoList) {
-        return repository
-                .saveAll(
-                        privilegioDtoList.stream()
-                                .map(PrivilegioDto::getEntity).toList())
-                .stream()
-                .map(Privilegio::getDto).toList();
     }
 }

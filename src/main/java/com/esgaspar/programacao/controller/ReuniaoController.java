@@ -1,20 +1,22 @@
 package com.esgaspar.programacao.controller;
 
-import com.esgaspar.programacao.model.dto.UserDto;
 import com.esgaspar.programacao.service.ReuniaoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping("/escola")
+@RequiredArgsConstructor
 public class ReuniaoController {
 
-    @Autowired
-    ReuniaoService service;
+    private final ReuniaoService service;
 
-    @GetMapping( name = "", produces = "application/json")
-    public UserDto get() {
-        return service.find();
+    @GetMapping
+    public ResponseEntity<Void> crawl() {
+        service.crawl();
+        return ResponseEntity.ok().build();
     }
 }

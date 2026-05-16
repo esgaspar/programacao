@@ -1,84 +1,75 @@
 package com.esgaspar.programacao.service;
 
-import com.esgaspar.programacao.model.Designacao;
+import com.esgaspar.programacao.mapper.DesignacaoMapper;
 import com.esgaspar.programacao.model.dto.DesignacaoDto;
 import com.esgaspar.programacao.repository.DesignacaoRepository;
-import com.esgaspar.programacao.util.Utils;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
-import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
-
 
 @Service
+@RequiredArgsConstructor
 public class DesignacaoService {
-    @PersistenceContext
-    private EntityManager em;
-    @Autowired
-    DesignacaoRepository repository;
+
+    private static final DateTimeFormatter URL_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+    private final DesignacaoRepository repository;
+    private final DesignacaoMapper mapper;
+
 
     public DesignacaoDto find(Long id) {
-        Optional<Designacao> designacaoOpt = repository.findById(id);
-        Designacao designacao = designacaoOpt.orElse(Designacao.builder().build());
-        return designacao.getDto();
+        return repository.findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new com.esgaspar.programacao.exception.ResourceNotFoundException(
+                        "Designação não encontrada: " + id));
     }
 
     public List<DesignacaoDto> list() {
-        List<Designacao> designacaoList = repository.findAll();
-        return designacaoList.stream().map(Designacao::getDto).toList();
+        return repository.findAll().stream().map(mapper::toDto).toList();
     }
 
     @Transactional
-    public DesignacaoDto save(DesignacaoDto designacaoDto) {
-        return repository.save(designacaoDto.getEntity()).getDto();
+    public DesignacaoDto save(DesignacaoDto dto) {
+        return mapper.toDto(repository.save(mapper.toEntityFromRequest(dto)));
     }
 
     @Transactional
-    public List<DesignacaoDto> saveAll(List<DesignacaoDto> designacaoDtoList) {
+    public List<DesignacaoDto> saveAll(List<DesignacaoDto> dtos) {
+        LocalDate data = mapper.toEntityFromRequest(dtos.get(0)).getData();
+        List<DesignacaoDto> existing = findByDate(data, data);
 
-        LocalDate data = designacaoDtoList.get(0).getEntity().getData();
-        List<DesignacaoDto> listByDate = findByDate(data, data);
+        repository.deleteAllInBatch(existing.stream().map(mapper::toEntityFromResponse).toList());
 
-        repository.deleteAllInBatch(listByDate.stream().map(
-                DesignacaoDto::getEntityPrint).toList());
-
-        return repository.saveAll(designacaoDtoList.stream().map(
-                        DesignacaoDto::getEntity).toList())
-                .stream().map(Designacao::getDto).toList();
+        return repository.saveAll(dtos.stream().map(mapper::toEntityFromRequest).toList())
+                .stream().map(mapper::toDto).toList();
     }
 
-
     @Transactional
-    public void deleteAll(List<DesignacaoDto> designacaoDtoList) {
-        repository.deleteAll(designacaoDtoList.stream().map(
-                DesignacaoDto::getEntityPrint).toList());
+    public void deleteAll(List<DesignacaoDto> dtos) {
+        repository.deleteAll(dtos.stream().map(mapper::toEntityFromResponse).toList());
     }
 
     public void delete(Long id) {
         repository.deleteById(id);
     }
 
-    @SneakyThrows
     public List<DesignacaoDto> findByDate(String inicioStr, String fimStr) {
-        SimpleDateFormat formato = new SimpleDateFormat("dd-MM-yyyy");
-        LocalDate inicio = Utils.DateUtils.asLocalDate(formato.parse(inicioStr));
-        LocalDate fim = Utils.DateUtils.asLocalDate(formato.parse(fimStr));
-
-        return findByDate(inicio, fim);
+        return findByDate(
+                LocalDate.parse(inicioStr, URL_FORMAT),
+                LocalDate.parse(fimStr, URL_FORMAT));
     }
 
     public List<DesignacaoDto> findByDate(LocalDate inicio, LocalDate fim) {
-        return repository.findByData(inicio, fim).stream().map(Designacao::getDto).toList();
+        return repository.findByData(inicio, fim).stream().map(mapper::toDto).toList();
     }
 
     public List<DesignacaoDto> findByMes(int mes) {
-        return repository.findByMes(mes).stream().map(Designacao::getDto).toList();
+        return repository.findByMes(mes).stream().map(mapper::toDto).toList();
     }
 }

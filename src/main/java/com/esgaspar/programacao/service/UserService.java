@@ -1,73 +1,64 @@
 package com.esgaspar.programacao.service;
 
-import com.esgaspar.programacao.infra.security.SecuryUtils;
-import com.esgaspar.programacao.model.Role;
-import com.esgaspar.programacao.model.User;
+import com.esgaspar.programacao.exception.ResourceNotFoundException;
+import com.esgaspar.programacao.infra.security.SecurityUtils;
+import com.esgaspar.programacao.mapper.UserMapper;
 import com.esgaspar.programacao.model.dto.UserDto;
 import com.esgaspar.programacao.repository.RoleRepository;
 import com.esgaspar.programacao.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.text.Collator;
-import java.util.*;
-
+import java.util.List;
+import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
-    @Autowired
-    UserRepository repository;
 
-    @Autowired
-    RoleRepository roleRepository;
-
-    @Autowired
-    AuthService authService;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public UserDto find(Long id) {
-        Optional<User> opt = repository.findById(id);
-
-        User entity = opt.orElse(User.builder().build());
-        return entity.getDto();
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + id));
     }
 
     public List<UserDto> list() {
-        List<User> list = new ArrayList<>();
-        if (SecuryUtils.isAdm()) {
-            list = repository.findAll();
-        }
-        return list.stream().map(User::getDto).toList();
+        if (!SecurityUtils.isAdm()) return List.of();
+        return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
 
     @Transactional
     public UserDto save(UserDto dto) {
+        boolean isSelf = Objects.nonNull(dto.id()) && SecurityUtils.getUser().getId().equals(dto.id());
 
-        if (!SecuryUtils.isAdm() || Objects.nonNull(dto.getId())
-                && SecuryUtils.getUser().getId().compareTo(dto.getId()) == 0) {
+        if (!SecurityUtils.isAdm() || isSelf) {
+            var entity = userMapper.toEntity(dto);
+            entity.setPassword(passwordEncoder.encode(dto.password()));
 
-            dto.setPassword(new BCryptPasswordEncoder().encode(dto.getPassword()));
-            if (dto.getRoles().isEmpty()) {
-                roleRepository.findByName("user")
-                        .ifPresent(role -> dto.setRoles(Collections.singleton(role.getDto())));
+            if (entity.getRoles() == null || entity.getRoles().isEmpty()) {
+                roleRepository.findByName("user").ifPresent(role -> entity.setRoles(java.util.Set.of(role)));
             }
 
-            return repository.save(dto.getEntity()).getDto();
+            return userMapper.toDto(userRepository.save(entity));
         }
         throw new AccessDeniedException("Operação não permitida");
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     public UserDto findByUsername(String username) {
-        Optional<User> opt = repository.findByUsername(username);
-        User entity = opt.orElse(User.builder().build());
-        return entity.getDto();
+        return userRepository.findByUsername(username)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + username));
     }
 }

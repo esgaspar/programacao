@@ -1,27 +1,21 @@
 package com.esgaspar.programacao.model;
 
-import com.esgaspar.programacao.model.dto.PrivilegioDto;
-import com.esgaspar.programacao.model.dto.VoluntarioDto;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Cascade;
 
 import java.util.List;
 
-@Entity
-@Table(name = "privilegio")
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
-@Data
+@Entity
+@Table(name = "privilegio")
 public class Privilegio {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     @Column(name = "descricao", nullable = false, length = 50)
@@ -34,33 +28,7 @@ public class Privilegio {
     private Integer ordem;
 
     @OrderBy("nome")
-    @ManyToMany(mappedBy = "privilegios", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(mappedBy = "privilegios",
+            cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Voluntario> voluntarioList;
-
-    @JsonIgnore
-    public PrivilegioDto getDtoParcial() {
-        return getDto(false);
-    }
-
-    @JsonIgnore
-    public PrivilegioDto getDto() {
-        return getDto(true);
-    }
-
-    @JsonIgnore
-    private PrivilegioDto getDto(boolean includePrivilegio) {
-        PrivilegioDto dto = PrivilegioDto.builder()
-                .id(getId())
-                .descricao(getDescricao())
-                .codigo(getCodigo())
-                .ordem(getOrdem())
-                .build();
-
-        if (includePrivilegio) {
-            if (getVoluntarioList() != null)
-                dto.setVoluntarioList(getVoluntarioList().stream().map(Voluntario::getDtoParcial).toList());
-        }
-
-        return dto;
-    }
 }

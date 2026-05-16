@@ -28,3 +28,5 @@ replay_pid*
 CLAUDE.md
 .env
 .env.*
+.claude/
+.vscode/launch.json

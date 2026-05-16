@@ -1,61 +1,49 @@
 package com.esgaspar.programacao.service;
 
-import com.esgaspar.programacao.model.Privilegio;
-import com.esgaspar.programacao.model.Voluntario;
+import com.esgaspar.programacao.exception.ResourceNotFoundException;
+import com.esgaspar.programacao.mapper.VoluntarioMapper;
 import com.esgaspar.programacao.model.dto.VoluntarioDto;
 import com.esgaspar.programacao.repository.VoluntarioRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
 
 @Service
+@RequiredArgsConstructor
 public class VoluntarioService {
-    @Autowired
-    VoluntarioRepository repository;
+
+    private final VoluntarioRepository repository;
+    private final VoluntarioMapper mapper;
 
     public VoluntarioDto find(Long id) {
-        Optional<Voluntario> voluntarioOpt = repository.findById(id);
-
-        Voluntario voluntario = voluntarioOpt.orElse(Voluntario.builder().build());
-        return voluntario.getDto();
+        return repository.findById(id)
+                .map(mapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Voluntário não encontrado: " + id));
     }
 
     public List<VoluntarioDto> list() {
-        List<Voluntario> voluntarioList = repository.findAllByOrderByNome();
-        return voluntarioList.stream().map(Voluntario::getDto).toList();
+        return repository.findAllByOrderByNome().stream().map(mapper::toDto).toList();
     }
 
     public List<VoluntarioDto> listByNome(String nome) {
-        if (nome.equalsIgnoreCase("-")) {
-            nome = "";
-        }
-
-        List<Voluntario> voluntarioList = repository.findByNomeContainingIgnoreCase(nome.toUpperCase());
-        return voluntarioList.stream().map(Voluntario::getDto).toList();
+        String busca = "-".equals(nome) ? "" : nome.toUpperCase();
+        return repository.findByNomeContainingIgnoreCase(busca).stream().map(mapper::toDto).toList();
     }
 
     @Transactional
-    public VoluntarioDto save(VoluntarioDto voluntarioDto) {
-        return repository.save(voluntarioDto.getEntity()).getDto();
+    public VoluntarioDto save(VoluntarioDto dto) {
+        return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
 
+    @Transactional
     public void delete(Long id) {
-        Optional<Voluntario> opt = repository.findById(id);
-
-        opt.ifPresent(voluntario -> {
-            voluntario.setPrivilegios(new ArrayList<>());
-            repository.saveAndFlush(voluntario);
-
+        repository.findById(id).ifPresent(v -> {
+            v.setPrivilegios(new ArrayList<>());
+            repository.saveAndFlush(v);
         });
-
-
         repository.deleteById(id);
     }
-
 }

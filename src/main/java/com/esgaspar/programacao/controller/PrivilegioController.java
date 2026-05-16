@@ -2,46 +2,42 @@ package com.esgaspar.programacao.controller;
 
 import com.esgaspar.programacao.model.dto.PrivilegioDto;
 import com.esgaspar.programacao.service.PrivilegioService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping("/privilegio")
+@RequiredArgsConstructor
 public class PrivilegioController {
 
-    @Autowired
-    PrivilegioService privilegioService;
+    private final PrivilegioService service;
 
-    @GetMapping(value = "/{id}", name = "", produces = "application/json")
-    public PrivilegioDto getPrivilegio(@PathVariable Long id) {
-        return privilegioService.find(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<PrivilegioDto> get(@PathVariable Long id) {
+        return ResponseEntity.ok(service.find(id));
     }
 
-    @GetMapping(value = "list", name = "", produces = "application/json")
-    public List<PrivilegioDto> getPrivilegioList() {
-        return privilegioService.list();
+    @GetMapping("/list")
+    public ResponseEntity<List<PrivilegioDto>> list() {
+        return ResponseEntity.ok(service.list());
     }
 
-    @PostMapping(value = "", name = "", produces = "application/json")
-    public PrivilegioDto save(@RequestBody PrivilegioDto privilegioDto) {
-        return privilegioService.save(privilegioDto);
+    @PostMapping
+    public ResponseEntity<PrivilegioDto> save(@RequestBody PrivilegioDto dto) {
+        return ResponseEntity.ok(service.save(dto));
     }
 
-    //@PostMapping(value = "save-all", name = "", produces = "application/json")
-
-    @RequestMapping(value = "/save-all",
-            produces = "application/json",
-            method=RequestMethod.POST)
-    public List<PrivilegioDto> saveAll(@RequestBody List<PrivilegioDto> privilegioDtoList) {
-        return privilegioService.saveAll(privilegioDtoList);
+    @PostMapping("/save-all")
+    public ResponseEntity<List<PrivilegioDto>> saveAll(@RequestBody List<PrivilegioDto> dtos) {
+        return ResponseEntity.ok(service.saveAll(dtos));
     }
 
-    @DeleteMapping(value = "/{id}", name = "", produces = "application/json")
-    public void delete(@PathVariable Long id) {
-        privilegioService.delete(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
-
 }

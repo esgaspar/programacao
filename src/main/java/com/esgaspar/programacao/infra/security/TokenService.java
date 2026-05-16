@@ -4,8 +4,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.esgaspar.programacao.config.SecurityProperties;
 import com.esgaspar.programacao.model.User;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,40 +14,39 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 @Service
+@RequiredArgsConstructor
 public class TokenService {
-    @Value("${api.security.token.secret}")
-    private String secret;
 
     private static final String ISSUER = "API";
+    private static final ZoneOffset ZONE = ZoneOffset.of("-03:00");
 
+    private final SecurityProperties props;
 
     public String gerarToken(User user) {
         try {
-            var algoritmo = Algorithm.HMAC256(secret);
             return JWT.create()
                     .withIssuer(ISSUER)
                     .withSubject(user.getUsername())
-                    .withExpiresAt(dataExpiracao())
-                    .sign(algoritmo);
-        } catch (JWTCreationException exception) {
-            throw new RuntimeException("erro ao gerrar token jwt", exception);
+                    .withExpiresAt(expiresAt())
+                    .sign(Algorithm.HMAC256(props.secret()));
+        } catch (JWTCreationException e) {
+            throw new RuntimeException("Erro ao gerar token JWT", e);
         }
     }
 
-    private Instant dataExpiracao() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
-    }
-
-    public String getSubject(String tokenJWT) {
+    public String getSubject(String token) {
         try {
-            var algoritmo = Algorithm.HMAC256(secret);
-            return JWT.require(algoritmo)
+            return JWT.require(Algorithm.HMAC256(props.secret()))
                     .withIssuer(ISSUER)
                     .build()
-                    .verify(tokenJWT)
+                    .verify(token)
                     .getSubject();
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token JWT inválido ou expirado!");
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException("Token JWT inválido ou expirado");
         }
+    }
+
+    private Instant expiresAt() {
+        return LocalDateTime.now().plusHours(2).toInstant(ZONE);
     }
 }
