@@ -44,7 +44,10 @@ public class DesignacaoService {
         LocalDate data = mapper.toEntityFromRequest(dtos.get(0)).getData();
         List<DesignacaoDto> existing = findByDate(data, data);
 
-        repository.deleteAllInBatch(existing.stream().map(mapper::toEntityFromResponse).toList());
+        List<com.esgaspar.programacao.model.Designacao> entitiesToDelete = existing.stream()
+                .map(mapper::toEntityFromResponse)
+                .toList();
+        repository.deleteAllInBatch(entitiesToDelete);
 
         return repository.saveAll(dtos.stream().map(mapper::toEntityFromRequest).toList())
                 .stream().map(mapper::toDto).toList();

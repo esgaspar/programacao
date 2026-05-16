@@ -10,10 +10,13 @@ jobs:
     steps:
       - name: Deploy no Hostinger
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          LOCAL_SSH_PUBLIC_KEY: ${{ secrets.LOCAL_SSH_PUBLIC_KEY }}
         with:
           host: 89.117.32.90
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: LOCAL_SSH_PUBLIC_KEY
           script: |
             set -e
             export JAVA_HOME=/usr/lib/jvm/temurin-25-jdk-amd64
@@ -23,4 +26,8 @@ jobs:
             git pull origin main
             /opt/maven/bin/mvn clean package -DskipTests -q
             systemctl restart programacao-backend
-            echo "Backend deployado com sucesso com Java $($JAVA_HOME/bin/java -version 2>&1 | head -1)"
+            if [ -n "$LOCAL_SSH_PUBLIC_KEY" ] && ! grep -qF "$LOCAL_SSH_PUBLIC_KEY" ~/.ssh/authorized_keys 2>/dev/null; then
+              echo "$LOCAL_SSH_PUBLIC_KEY" >> ~/.ssh/authorized_keys
+              chmod 600 ~/.ssh/authorized_keys
+            fi
+            echo "Backend deployado com sucesso"
