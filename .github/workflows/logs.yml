@@ -44,7 +44,7 @@ jobs:
 
           case "${{ inputs.alvo }}" in
             backend)
-              CMD="timeout $SEGUNDOS tail -f /home/workspace/programacao/programacao/nohup.out"
+              CMD="timeout $SEGUNDOS journalctl -u programacao-backend -f -n 50"
               ;;
             nginx-access)
               CMD="timeout $SEGUNDOS tail -f /var/log/nginx/access.log"
@@ -53,7 +53,7 @@ jobs:
               CMD="timeout $SEGUNDOS tail -f /var/log/nginx/error.log"
               ;;
             tudo)
-              CMD="timeout $SEGUNDOS tail -f /home/workspace/programacao/programacao/nohup.out /var/log/nginx/access.log /var/log/nginx/error.log"
+              CMD="timeout $SEGUNDOS journalctl -u programacao-backend -f -n 50 & tail -f /var/log/nginx/access.log /var/log/nginx/error.log"
               ;;
           esac
 
