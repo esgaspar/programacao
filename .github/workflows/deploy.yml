@@ -19,9 +19,5 @@ jobs:
             cd /home/workspace/programacao/programacao
             git pull origin main
             /opt/maven/bin/mvn clean package -DskipTests -q
-            pkill -f 'programacao-0.0.1-SNAPSHOT.jar' || true
-            sleep 2
-            setsid nohup java -jar target/programacao-0.0.1-SNAPSHOT.jar > nohup.out 2>&1 < /dev/null &
-            disown
-            sleep 5
-            pgrep -f 'programacao-0.0.1-SNAPSHOT.jar' && echo "Backend deployado com sucesso" || echo "ERRO: processo nao iniciou"
+            systemctl restart programacao-backend
+            echo "Backend deployado com sucesso"
