@@ -26,3 +26,5 @@ replay_pid*
 /.idea/
 /target/
 CLAUDE.md
+.env
+.env.*
