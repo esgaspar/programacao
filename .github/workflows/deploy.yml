@@ -16,8 +16,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+            export JAVA_HOME=/usr/lib/jvm/temurin-25-jdk-amd64
+            export PATH=$JAVA_HOME/bin:$PATH
+            export MAVEN_OPTS="--enable-native-access=ALL-UNNAMED"
             cd /home/workspace/programacao/programacao
             git pull origin main
             /opt/maven/bin/mvn clean package -DskipTests -q
             systemctl restart programacao-backend
-            echo "Backend deployado com sucesso"
+            echo "Backend deployado com sucesso com Java $($JAVA_HOME/bin/java -version 2>&1 | head -1)"
